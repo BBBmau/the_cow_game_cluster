@@ -41,8 +41,8 @@ module "kubernetes-engine_beta-autopilot-public-cluster" {
   // required inputs
   name = "the-cow-game-cluster"
   project_id = "thecowgame"
-  network = google_compute_network.cow_cluster.id
-  subnetwork = google_compute_subnetwork.cow_cluster.id
+  network = google_compute_network.cow_cluster.name
+  subnetwork = google_compute_subnetwork.cow_cluster.name
   ip_range_pods = google_compute_subnetwork.cow_cluster.secondary_ip_range.1.range_name
   ip_range_services = google_compute_subnetwork.cow_cluster.secondary_ip_range.0.range_name
   network_tags = ["game-server"]
