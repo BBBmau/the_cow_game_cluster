@@ -97,12 +97,3 @@ resource "google_compute_global_address" "default" {
 output "playthecowgame_ip_address" {
   value       = google_compute_global_address.default.address
 }
-
-
-resource "google_compute_managed_ssl_certificate" "default" {
-  name = "playthecowgame-cert"
-
-  managed {
-    domains = ["playthecowgame.com"]  # Replace with your domain
-  }
-}

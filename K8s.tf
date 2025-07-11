@@ -59,7 +59,7 @@ resource "kubernetes_ingress_v1" "gke_ingress" {
     name = "playhtecowgame-ingress"
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
-      "networking.gke.io/managed-certificates"       = google_compute_managed_ssl_certificate.default.name
+      "networking.gke.io/managed-certificates"       = kubernetes_manifest.managed_certificate.manifest["metadata"]["name"]
     }
   }
 
@@ -79,6 +79,25 @@ resource "kubernetes_ingress_v1" "gke_ingress" {
           }
         }
       }
+    }
+  }
+
+  depends_on = [kubernetes_manifest.managed_certificate]
+}
+
+# Create the ManagedCertificate Kubernetes resource
+resource "kubernetes_manifest" "managed_certificate" {
+  manifest = {
+    apiVersion = "networking.gke.io/v1beta1"
+    kind       = "ManagedCertificate"
+    metadata = {
+      name      = "playthecowgame-cert"
+      namespace = "default"
+    }
+    spec = {
+      domains = [
+        "www.playthecowgame.com"
+      ]
     }
   }
 }
