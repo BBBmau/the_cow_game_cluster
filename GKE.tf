@@ -26,19 +26,36 @@ resource "google_compute_subnetwork" "cow_cluster" {
   }
 }
 
+resource "google_container_cluster" "primary" {
+  name     = "the-cow-game-cluster"
+  location = "us-west1"
 
-module "kubernetes-engine_beta-autopilot-public-cluster" {
-  source  = "terraform-google-modules/kubernetes-engine/google//modules/beta-autopilot-public-cluster"
-  version = "37.0.0"
-  region = "us-west1"  
+lifecycle {
 
+   prevent_destroy = true
 
-  // required inputs
-  name = "the-cow-game-cluster"
-  project_id = "thecowgame"
-  network = google_compute_network.cow_cluster.name
-  subnetwork = google_compute_subnetwork.cow_cluster.name
-  ip_range_pods = google_compute_subnetwork.cow_cluster.secondary_ip_range.1.range_name
-  ip_range_services = google_compute_subnetwork.cow_cluster.secondary_ip_range.0.range_name
-  network_tags = ["game-server"]
+ }
+  # We can't create a cluster with no node pool defined, but we want to only use
+  # separately managed node pools. So we create the smallest possible default
+  # node pool and immediately delete it.
+  remove_default_node_pool = true
+  initial_node_count       = 1
+}
+
+resource "google_container_node_pool" "primary_preemptible_nodes" {
+  name       = "cow-node-pool"
+  location   = "us-west1"
+  cluster    = google_container_cluster.primary.name
+  node_count = 1
+
+  node_config {
+    preemptible  = true
+    machine_type = "e2-medium"
+
+    # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
+    service_account = "cluster-manager@thecowgame.iam.gserviceaccount.com"
+    oauth_scopes    = [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  }
 }

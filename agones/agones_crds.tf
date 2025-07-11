@@ -9,7 +9,7 @@ resource "kubernetes_manifest" "gameserver_the_first_cow_game_server" {
     "spec" = {
       "ports" = [
         {
-          "containerPort" = 6060
+          "containerPort" = 8080
 	  "name" = "default"
 	  "protocol" = "TCP"
           "portPolicy" = "Dynamic"
@@ -22,7 +22,7 @@ resource "kubernetes_manifest" "gameserver_the_first_cow_game_server" {
         "spec" = {
           "containers" = [
             {
-              "image" = "us-west1-docker.pkg.dev/thecowgame/game-images/mmo-server:latest"
+              "image" = "us-west1-docker.pkg.dev/thecowgame/game-images/mmo-server@sha256:5cbb059cf7252d471fb557b8d48177c6c8ca382334d615ecaface6e07ec6e785" // first pushed image
               "name" = "thecowgameserver"
               "resources" = {
                 "limits" = {
