@@ -78,6 +78,31 @@ resource "kubernetes_service" "headless_service" {
     }
   }
 }
+
+resource "google_compute_backend_service" "ingress_backend" {
+  name        = "k8s-be-31622--109cb19e972eba76"
+  protocol    = "HTTP"
+  timeout_sec = 3600
+
+  connection_draining_timeout_sec = 300  # replaces connection_draining block
+
+  health_checks = [
+    "https://www.googleapis.com/compute/v1/projects/thecowgame/global/healthChecks/k8s1-109cb19e-kube-system-default-http-backend-80-cb1c11b2"
+  ]
+
+  backend {
+    group = "https://www.googleapis.com/compute/v1/projects/thecowgame/zones/us-west1-a/instanceGroups/k8s-ig--109cb19e972eba76"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      health_checks,
+      description
+    ]
+  }
+}
+
+
 resource "kubernetes_ingress_v1" "gke_ingress" {
   metadata {
     name = "playhtecowgame-ingress"
