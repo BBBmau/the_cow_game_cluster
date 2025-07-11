@@ -23,11 +23,11 @@ resource "kubernetes_pod" "game_server" {
 
       resources{
         limits = {
-          cpu = "20m"
+          cpu = "750m"
           memory = "64Mi"
         }
         requests = {
-          cpu = "20m"
+          cpu = "400m"
           memory = "64Mi"
         }
       }
