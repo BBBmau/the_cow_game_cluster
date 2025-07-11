@@ -48,9 +48,21 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   cluster    = google_container_cluster.primary.name
   node_count = 1
 
+  lifecycle {
+    ignore_changes = [
+      node_config[0].labels
+    ]
+  }
+
   node_config {
     preemptible  = true
     machine_type = "e2-medium"
+
+    tags = ["game-server"]
+
+    labels ={
+        "node.kubernetes.io/kube-proxy-ds-ready" = "true"
+    }
 
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
     service_account = "cluster-manager@thecowgame.iam.gserviceaccount.com"
@@ -58,4 +70,20 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
       "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
+}
+
+resource "google_compute_firewall" "allow_nodeport_31622" {
+  name    = "allow-nodeport-31622"
+  network = google_container_cluster.primary.network # Change if your cluster uses a different VPC network
+
+  allow {
+    protocol = "tcp"
+    ports    = ["31622"]
+  }
+
+  direction    = "INGRESS"
+  priority     = 1000
+  source_ranges = ["0.0.0.0/0"]
+
+  target_tags = ["game-server"]  # Replace with the network tag applied to your GKE nodes
 }
