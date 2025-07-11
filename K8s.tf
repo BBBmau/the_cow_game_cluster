@@ -18,7 +18,7 @@ resource "kubernetes_pod" "game_server" {
       name  = "thecowgameserver"
 
       port {
-        container_port = 8080
+        container_port = 6060
       }
 
       resources{
@@ -50,7 +50,35 @@ resource "kubernetes_service" "headless_service" {
     }
     port{
       port = 80
-      target_port = 8080
+      target_port = 6060
+    }
+  }
+}
+resource "kubernetes_ingress_v1" "gke_ingress" {
+  metadata {
+    name = "playhtecowgame-ingress"
+    annotations = {
+      "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
+      "networking.gke.io/managed-certificates"       = google_compute_managed_ssl_certificate.default.name
+    }
+  }
+
+  spec {
+    rule {
+      http {
+        path {
+          path     = "/*"
+          path_type = "ImplementationSpecific"
+          backend {
+            service {
+              name = kubernetes_service.headless_service.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

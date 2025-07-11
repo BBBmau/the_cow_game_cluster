@@ -87,3 +87,22 @@ resource "google_compute_firewall" "allow_nodeport_31622" {
 
   target_tags = ["game-server"]  # Replace with the network tag applied to your GKE nodes
 }
+
+// used for HTTPS ingress traffic
+
+resource "google_compute_global_address" "default" {
+  name = "playthecowgame-ingress-ip"
+}
+
+output "playthecowgame_ip_address" {
+  value       = google_compute_global_address.default.address
+}
+
+
+resource "google_compute_managed_ssl_certificate" "default" {
+  name = "playthecowgame-cert"
+
+  managed {
+    domains = ["playthecowgame.com"]  # Replace with your domain
+  }
+}
