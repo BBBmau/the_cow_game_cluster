@@ -45,6 +45,10 @@ lifecycle {
 resource "google_container_node_pool" "primary_preemptible_nodes" {
   name       = "cow-node-pool"
   location   = "us-west1"
+  // TODO: we only care about one zone in each region, we'll need to have multiple clusters if we want to handle server selection based on region
+  // west, central, east would each require a cluster matching the region
+  node_locations = ["us-west1-a"]
+
   cluster    = google_container_cluster.primary.name
   node_count = 1
 

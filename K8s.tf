@@ -27,7 +27,7 @@ resource "kubernetes_pod" "game_server" {
           memory = "64Mi"
         }
         requests = {
-          cpu = "400m"
+          cpu = "20m"
           memory = "64Mi"
         }
       }
@@ -36,7 +36,31 @@ resource "kubernetes_pod" "game_server" {
         name = "artifact-registry-secret"
       }
   }
+
+  depends_on = [kubernetes_secret.artifact_registry_secret]
 }
+
+resource "kubernetes_secret" "artifact_registry_secret" {
+  metadata {
+    name = "artifact-registry-secret"
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+
+  data = {
+    ".dockerconfigjson" = jsonencode({
+      auths = {
+        "us-west1-docker.pkg.dev" = {
+          username = "_json_key"
+          password = file("../../credentials/thecowgame-clustermanager.json")
+          email    = "cluster-manager@thecowgame.iam.gserviceaccount.com"
+          auth     = base64encode(format("%s:%s", "_json_key", file("../../credentials/thecowgame-clustermanager.json")))
+        }
+      }
+    })
+  }
+}
+
 
 resource "kubernetes_service" "headless_service" {
   metadata{
