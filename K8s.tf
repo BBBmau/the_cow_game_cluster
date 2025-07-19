@@ -4,8 +4,9 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
 }
 
-resource "kubernetes_pod" "game_server" {
-    metadata {
+// we moved away from pods in order to have auto provisioning every day - perhaps we can prevent this from happening
+resource "kubernetes_deployment" "game_server" {
+  metadata {
     name = "the-cow-game-server"
     labels = {
       "app" = "cow-game"
@@ -13,28 +14,47 @@ resource "kubernetes_pod" "game_server" {
   }
 
   spec {
-    container {
-      image = "us-west1-docker.pkg.dev/thecowgame/game-images/mmo-server:latest"
-      name  = "thecowgameserver"
+    replicas = 1
 
-      port {
-        container_port = 6060
+    selector {
+      match_labels = {
+        "app" = "cow-game"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          "app" = "cow-game"
+        }
       }
 
-      resources{
-        limits = {
-          cpu = "750m"
-          memory = "64Mi"
+      spec {
+        container {
+          image = "us-west1-docker.pkg.dev/thecowgame/game-images/mmo-server:latest"
+          name  = "thecowgameserver"
+
+          port {
+            container_port = 6060
+          }
+
+          resources {
+            limits = {
+              cpu    = "750m"
+              memory = "64Mi"
+            }
+            requests = {
+              cpu    = "20m"
+              memory = "64Mi"
+            }
+          }
         }
-        requests = {
-          cpu = "20m"
-          memory = "64Mi"
+        
+        image_pull_secrets {
+          name = "artifact-registry-secret"
         }
       }
     }
-     image_pull_secrets {
-        name = "artifact-registry-secret"
-      }
   }
 
   depends_on = [kubernetes_secret.artifact_registry_secret]
@@ -151,12 +171,12 @@ resource "kubernetes_manifest" "managed_certificate" {
   }
 }
 
-resource "kubernetes_manifest" "managed_certificate" {
+resource "kubernetes_manifest" "managed_certificate_2" {
   manifest = {
     apiVersion = "networking.gke.io/v1beta1"
     kind       = "ManagedCertificate"
     metadata = {
-      name      = "playthecowgame-cert"
+      name      = "playthecowgame-cert-2"
       namespace = "default"
     }
     spec = {
