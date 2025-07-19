@@ -150,3 +150,19 @@ resource "kubernetes_manifest" "managed_certificate" {
     }
   }
 }
+
+resource "kubernetes_manifest" "managed_certificate" {
+  manifest = {
+    apiVersion = "networking.gke.io/v1beta1"
+    kind       = "ManagedCertificate"
+    metadata = {
+      name      = "playthecowgame-cert"
+      namespace = "default"
+    }
+    spec = {
+      domains = [
+        "playthecowgame.com"
+      ]
+    }
+  }
+}
