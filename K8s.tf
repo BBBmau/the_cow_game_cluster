@@ -16,6 +16,14 @@ resource "kubernetes_deployment" "game_server" {
   spec {
     replicas = 1
 
+    strategy {
+      type = "RollingUpdate"
+      rolling_update {
+        max_surge       = 1
+        max_unavailable = 0
+      }
+    }
+
     selector {
       match_labels = {
         "app" = "cow-game"
@@ -33,6 +41,7 @@ resource "kubernetes_deployment" "game_server" {
         container {
           image = "us-west1-docker.pkg.dev/thecowgame/game-images/mmo-server:latest"
           name  = "thecowgameserver"
+          image_pull_policy = "Always"
 
           port {
             container_port = 6060
